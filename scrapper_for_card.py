@@ -5,6 +5,9 @@ from collections import defaultdict
 import re
 import json
 
+from db import *
+from scrapper_for_product_details import get_soup_for_card_info
+
 
 monster_sql = """\t, (
 \t\t'{CARD_ID}', {CARD_COLOR_SQL}, '{CARD_NAME}', '{MONSTER_ATTRIBUTE}'
@@ -30,13 +33,11 @@ def single_quote_escape(item):
 
 
 def get_card_details(cards_to_fetch_info_for):
-    cardUrl = 'yugipedia.com/wiki/{CARD_NAME}'
+    card_url = 'yugipedia.com/wiki/{CARD_NAME}'
     card_info_dict = defaultdict(list)
 
     for card_name in cards_to_fetch_info_for:
-        url = 'https://' + urllib.parse.quote(cardUrl.format(CARD_NAME=card_name.replace('#', '')))
-        html = requests.get(url)
-        soup = BeautifulSoup(html.content, 'html.parser')
+        soup = get_soup_for_card_info(card_url, card_name)
 
         card_name = soup.find('div', attrs={'class': 'card-table'}).find_all('div', attrs={'class': 'heading'})[0].text.strip()
         card_name = single_quote_escape(card_name)
@@ -48,7 +49,7 @@ def get_card_details(cards_to_fetch_info_for):
         if card_color not in ['Spell', 'Trap']:
             monster_types = [tr for tr in card_info_tr if 'Type' in str(tr)][0].find('td').text.strip().replace(' / ', '/')
             monster_types_cleaned = monster_types.replace('/Gemini', '').replace('/Flip', '') \
-                .replace('/Toon', '').replace('/Spirit', '').replace('/Union', '')
+                .replace('/Toon', '').replace('/Spirit', '').replace('/Union', '').replace('/Tuner', "")
 
             # appending /Normal to Normal cards or /Effect to modernize older cards
             if '/' not in monster_types:
@@ -124,3 +125,21 @@ def get_card_detail_queries(card_info_dict):
             else:
                 print(monster_sql.format(CARD_ID=card['card_id'], CARD_COLOR_SQL=card_color_sql_dict[card_color], CARD_NAME=card['card_name'], MONSTER_ATTRIBUTE=card['monster_attribute'], CARD_EFFECT=card['card_effect'], MONSTER_TYPE=card['monster_type'], MONSTER_ATK=card['monster_atk'], MONSTER_DEF=card['monster_def'], MONSTER_ASSOCIATION=card['monster_association']))
         print()
+
+
+if __name__ == '__main__':
+    dbConn, dbCursor = get_db_connections()
+
+    query = "select card_name from cards where color_id = '12' and monster_association is NULL order by card_name"
+    dbCursor.execute(query)
+    cards = []
+    for row in dbCursor.fetchall():
+        cards.append(row[0])
+
+    print(cards)
+    exit
+    card_info = get_card_details(cards)
+    queries = get_card_detail_queries(card_info)
+    print(queries)
+
+    db_cleanup(dbConn, dbCursor)

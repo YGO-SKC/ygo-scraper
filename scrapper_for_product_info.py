@@ -23,7 +23,11 @@ def get_product_info(soup, product_type, product_sub_type):
 
     product_info_table = soup.find('table', attrs={'class': 'infobox list-noicon'}).find_all('tr')
 
-    product_release_date = parse(get_stat_from_product_info_table('English (na)', product_info_table)).date()
+    if get_stat_from_product_info_table('English (na)', product_info_table) is not None:
+        product_release_date = parse(get_stat_from_product_info_table('English (na)', product_info_table)).date()
+    else:
+        product_release_date = parse(get_stat_from_product_info_table('English (world)', product_info_table)).date()
+
     product_id = \
     [product_id for product_id in get_stat_from_product_info_table('Prefix', product_info_table).splitlines() if
      'EN' in product_id or 'en' in product_id][0].split('-')[0]
