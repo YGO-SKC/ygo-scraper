@@ -80,11 +80,11 @@ def get_card_details(cards_to_fetch_info_for):
 
 
         if card_color in ['Spell', 'Trap']:
-            card_property = [tr for tr in card_info_tr if 'Property' in str(tr)][0].find('td').find('p').a.text.strip()
+            card_property = [tr for tr in card_info_tr if 'Property' in str(tr)][0].find('td').text.strip()
 
             card_info_dict[card_color].append({ 'card_id': card_id, 'card_name': card_name, 'card_effect': card_effect, 'card_property': card_property })
         else:
-            monster_attribute = [tr for tr in card_info_tr if 'Attribute' in str(tr)][0].find('p').find_all('a')[0].text.title()
+            monster_attribute = [tr for tr in card_info_tr if 'Attribute' in str(tr)][0].text.replace('Attribute', '').strip()
 
             monster_atk = [tr for tr in card_info_tr if 'ATK' in str(tr)][0].find('td').text.strip().split('/')[0].strip()
             monster_atk = 'null' if monster_atk == '?' else monster_atk
@@ -93,23 +93,26 @@ def get_card_details(cards_to_fetch_info_for):
             monster_def = 'null' if monster_def == '?' else monster_def
 
             if card_color == 'Xyz':
-                monster_association = {'rank': [tr for tr in card_info_tr if 'Rank' in str(tr)][0].find('p').find_all('a')[0].text}
+                monster_association = {'rank': [tr for tr in card_info_tr if 'Rank' in str(tr.find('th'))][0].text.split('\n\n')[1]}
             elif card_color == 'Link':
                 link_rating = monster_def
-                arrows = [tr for tr in card_info_tr if 'Link Arrows' in str(tr)][0].find('td').div.findChildren('div', recursive=False)[1].find_all('a')
+                arrows = [tr for tr in card_info_tr if 'Link Arrows' in str(tr.find('th'))][0].find('td').div.findChildren('div', recursive=False)[1].find_all('a')
                 link_arrows = []
                 for arrow in arrows:
                     link_arrows.append(re.sub('[a-z]*', '', arrow.text.strip()))
                 monster_association = {'linkRating': link_rating, 'linkArrows': link_arrows}
             elif 'Pendulum' in card_color:
                 scale = [tr for tr in card_info_tr if 'Pendulum Scale' in str(tr)][0].find('td').find('p').find_all('a')[1].text.strip()
-                monster_association = {'level': [tr for tr in card_info_tr if 'Level' in str(tr)][0].find('p').find_all('a')[0].text, 'scaleRating': scale}
+                monster_association = {'level': [tr for tr in card_info_tr if 'Level' in str(tr.find('th'))][0].find('p').find_all('a')[0].text, 'scaleRating': scale}
             else:
-                monster_association = {'level': [tr for tr in card_info_tr if 'Level' in str(tr)][0].find('p').find_all('a')[0].text}
+                association = [tr for tr in card_info_tr if 'Level' in str(tr.find('th'))][0].text.split('\n\n')[1]
+                monster_association = {'level': association}
 
             monster_type = monster_types
 
-            card_info_dict[card_color].append({ 'card_id': card_id, 'card_name': card_name, 'card_effect': card_effect, 'monster_atk': monster_atk, 'monster_def': monster_def, 'monster_type': monster_type, 'monster_attribute': monster_attribute, 'monster_association': json.dumps(monster_association) })
+            card_info_dict[card_color].append({ 'card_id': card_id, 'card_name': card_name, 'card_effect': card_effect \
+                                                  , 'monster_atk': monster_atk, 'monster_def': monster_def, 'monster_type': monster_type \
+                                                  , 'monster_attribute': monster_attribute, 'monster_association': json.dumps(monster_association) })
 
     return card_info_dict
 

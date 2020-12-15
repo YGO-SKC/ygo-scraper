@@ -32,10 +32,13 @@ def get_soup_for_card_info(card_url, card_name):
 def get_pack_content_by_table_element(soup):
     pack_content = []
     for table_id in ['Top_table', 'Variant_cards', 'Booster_Packs']:
-        table_element = soup.find(id=table_id)
+        tables = soup.find_all(id=table_id, class_='set_list')
 
-        if table_element is not None:
-            pack_content.extend(table_element.find('tbody').find_all('tr'))
+        for table in tables:
+            table_body = table.find('tbody')
+            for tr in table_body.find_all('tr'):
+                if tr.find('td') is not None:
+                    pack_content.append(tr)
 
     return pack_content
 
@@ -72,6 +75,8 @@ def get_product_details(soup):
                 card_name = card_name.split('" (as')[0]
             elif '" (alternate art' in card_name:
                 card_name = card_name.split('" (alternate art')[0]
+            elif '" (Alternate art' in card_name:
+                card_name = card_name.split('" (Alternate art')[0]
             elif '" ("' in card_name:
                 card_name = card_name.split('" ("')[0]
 

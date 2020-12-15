@@ -17,6 +17,10 @@ cardsNotInDb = get_product_details(soup)
 
 card_info_dict = get_card_details(cardsNotInDb)
 get_card_detail_queries(card_info_dict)
+
+
+
+
 # for key, value in card_info_dict.items():
 #     print(key)
 #     for item in value:
