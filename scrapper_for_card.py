@@ -102,8 +102,13 @@ def get_card_details(cards_to_fetch_info_for):
                     link_arrows.append(re.sub('[a-z]*', '', arrow.text.strip()))
                 monster_association = {'linkRating': link_rating, 'linkArrows': link_arrows}
             elif 'Pendulum' in card_color:
-                scale = [tr for tr in card_info_tr if 'Pendulum Scale' in str(tr)][0].find('td').find('p').find_all('a')[1].text.strip()
-                monster_association = {'level': [tr for tr in card_info_tr if 'Level' in str(tr.find('th'))][0].find('p').find_all('a')[0].text, 'scaleRating': scale}
+                scale_tr_element = [tr for tr in card_info_tr if 'Pendulum Scale' in str(tr)]
+                scale = scale_tr_element[0].find('td').find_all('a')[1].text.strip()
+
+                level_tr_element = [tr for tr in card_info_tr if 'Level' in str(tr.find('th'))]
+                level = level_tr_element[0].find('td').find_all('a')[0].text.strip()
+
+                monster_association = {'level': level, 'scaleRating': scale}
             else:
                 association = [tr for tr in card_info_tr if 'Level' in str(tr.find('th'))][0].text.split('\n\n')[1]
                 monster_association = {'level': association}

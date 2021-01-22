@@ -3,10 +3,10 @@ from bs4 import BeautifulSoup
 from dateutil.parser import parse
 
 
-product_query_stub = """INSERT INTO products
-\t(product_id, product_locale, product_name, product_release_date, product_type, product_sub_type)
-VALUES
-\t('{PRODUCT_ID}', 'EN', '{PRODUCT_NAME}', '{PRODUCT_RELEASE_DATE}', '{PRODUCT_TYPE}', '{PRODUCT_SUB_TYPE}');"""
+product_query_stub = ('INSERT INTO products\n'
+                      '\t(product_id, product_locale, product_name, product_release_date, product_type, product_sub_type)\n'
+                      'VALUES\n'
+                      '\t(\'{PRODUCT_ID}\', \'EN\', \'{PRODUCT_NAME}\', \'{PRODUCT_RELEASE_DATE}\', \'{PRODUCT_TYPE}\', \'{PRODUCT_SUB_TYPE}\');')
 
 
 def get_stat_from_product_info_table(stat, product_info_table):

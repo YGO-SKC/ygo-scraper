@@ -31,14 +31,13 @@ def get_soup_for_card_info(card_url, card_name):
 # get cards from tables with given id's
 def get_pack_content_by_table_element(soup):
     pack_content = []
-    for table_id in ['Top_table', 'Variant_cards', 'Booster_Packs']:
-        tables = soup.find_all(id=table_id, class_='set_list')
+    tables = soup.find_all(class_='card-list')
 
-        for table in tables:
-            table_body = table.find('tbody')
-            for tr in table_body.find_all('tr'):
-                if tr.find('td') is not None:
-                    pack_content.append(tr)
+    for table in tables:
+        table_body = table.find('tbody')
+        for tr in table_body.find_all('tr'):
+            if tr.find('td') is not None:
+                pack_content.append(tr)
 
     return pack_content
 
