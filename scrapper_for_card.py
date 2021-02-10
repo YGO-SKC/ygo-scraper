@@ -8,13 +8,12 @@ import json
 from db import *
 from scrapper_for_product_details import get_soup_for_card_info
 
-
+# ********* Constants ***********
 monster_sql = """\t, (
 \t\t'{CARD_ID}', {CARD_COLOR_SQL}, '{CARD_NAME}', '{MONSTER_ATTRIBUTE}'
 \t\t, "{CARD_EFFECT}"
 \t\t, '{MONSTER_TYPE}', {MONSTER_ATK}, {MONSTER_DEF}, '{MONSTER_ASSOCIATION}'
 \t)"""
-
 
 spell_and_trap_sql = """\t, (
 \t\t'{CARD_ID}', {CARD_COLOR_SQL}, '{CARD_NAME}', '{CARD_COLOR}'
@@ -22,8 +21,14 @@ spell_and_trap_sql = """\t, (
 \t\t, '{CARD_PROPERTY}'
 \t)"""
 
-card_color_sql_dict = { 'Normal': '@normalCardColor', 'Effect': '@effectCardColor', 'Ritual': '@ritualCardColor', 'Fusion': '@fusionCardColor', 'Synchro': '@synchroCardColor', 'Xyz': '@xyzCardColor', 'Pendulum-Normal': 'pendulumNormalCardColor', 'Pendulum-Effect': '@pendulumCardColor', 'Pendulum-Fusion': 'pendulumFusionCardColor', 'Pendulum-Synchro': '@pendulumSynchroCardColor', 'Pendulum-Xyz': '@pendulumXyzCardColor', 'Link': '@linkCardColor', 'Spell': '@spellCardColor', 'Trap': '@trapCardColor' }
+card_color_sql_dict = {'Normal': '@normalCardColor', 'Effect': '@effectCardColor', 'Ritual': '@ritualCardColor',
+                        'Fusion': '@fusionCardColor', 'Synchro': '@synchroCardColor', 'Xyz': '@xyzCardColor',
+                        'Pendulum-Normal': '@pendulumNormalCardColor', 'Pendulum-Effect': '@pendulumCardColor',
+                        'Pendulum-Fusion': '@pendulumFusionCardColor', 'Fusion-Pendulum': '@pendulumFusionCardColor',
+                        'Synchro-Pendulum': '@pendulumSynchroCardColor', 'Xyz-Pendulum': '@pendulumXyzCardColor', 'Link': '@linkCardColor',
+                        'Spell': '@spellCardColor', 'Trap': '@trapCardColor'}
 
+# ********* Helper Methods ***********
 def double_quote_escape(item):
     return item.replace('"', '""')
 
@@ -67,7 +72,11 @@ def get_card_details(cards_to_fetch_info_for):
             effects = [tr for tr in card_info_tr if 'lore' in str(tr)][0].find_all('dd')
             card_effect = 'Pendulum Effect\n' + effects[0].text.strip() + '\n\nMonster Effect\n' + effects[0].text.strip()
             card_color += '-'
-            card_color += monster_types_cleaned.split('/')[2]
+            monster_types_cleaned_tokens = monster_types_cleaned.split('/')
+            if len(monster_types_cleaned_tokens) > 2:
+                card_color += monster_types_cleaned.split('/')[2]
+            else:
+                card_color = 'Pendulum-Normal'
         else:
             for br in card_effect.find_all('br'):
                 br.replace_with("\n")
@@ -85,6 +94,7 @@ def get_card_details(cards_to_fetch_info_for):
             card_info_dict[card_color].append({ 'card_id': card_id, 'card_name': card_name, 'card_effect': card_effect, 'card_property': card_property })
         else:
             monster_attribute = [tr for tr in card_info_tr if 'Attribute' in str(tr)][0].text.replace('Attribute', '').strip()
+            monster_attribute = monster_attribute.title()
 
             monster_atk = [tr for tr in card_info_tr if 'ATK' in str(tr)][0].find('td').text.strip().split('/')[0].strip()
             monster_atk = 'null' if monster_atk == '?' else monster_atk
@@ -105,10 +115,16 @@ def get_card_details(cards_to_fetch_info_for):
                 scale_tr_element = [tr for tr in card_info_tr if 'Pendulum Scale' in str(tr)]
                 scale = scale_tr_element[0].find('td').find_all('a')[1].text.strip()
 
-                level_tr_element = [tr for tr in card_info_tr if 'Level' in str(tr.find('th'))]
-                level = level_tr_element[0].find('td').find_all('a')[0].text.strip()
+                if "Xyz" in card_color:
+                    rank_tr_element = [tr for tr in card_info_tr if 'Rank' in str(tr.find('th'))]
+                    rank = rank_tr_element[0].find('td').find_all('a')[0].text.strip()
 
-                monster_association = {'level': level, 'scaleRating': scale}
+                    monster_association = {'level': rank, 'scaleRating': scale}
+                else:
+                    level_tr_element = [tr for tr in card_info_tr if 'Level' in str(tr.find('th'))]
+                    level = level_tr_element[0].find('td').find_all('a')[0].text.strip()
+
+                    monster_association = {'level': level, 'scaleRating': scale}
             else:
                 association = [tr for tr in card_info_tr if 'Level' in str(tr.find('th'))][0].text.split('\n\n')[1]
                 monster_association = {'level': association}
@@ -138,7 +154,7 @@ def get_card_detail_queries(card_info_dict):
 if __name__ == '__main__':
     dbConn, dbCursor = get_db_connections()
 
-    query = "select card_name from cards where color_id = '12' and monster_association is NULL order by card_name"
+    query = "select card_name from cards where color_id = '13' order by card_name"
     dbCursor.execute(query)
     cards = []
     for row in dbCursor.fetchall():
