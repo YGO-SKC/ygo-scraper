@@ -78,12 +78,18 @@ def get_product_details(soup):
                 card_name = card_name.split('" (Alternate art')[0]
             elif '" ("' in card_name:
                 card_name = card_name.split('" ("')[0]
+            elif 'Token" (' in card_name:
+                card_name = 'Token'
 
             card_info_soup = get_soup_for_card_info(card_url, card_name)
 
             # Find table that contains info about password, get all rows from table, find the only row that references
             # the word Password (card id) and get the <td> content as that is where the password is
-            card_id = [tr for tr in card_info_soup.find('table', attrs={'class': 'innertable'}).find_all('tr') if 'Password' in str(tr)][0].find('td').text.strip()
+            if card_name != 'Token':
+                card_info_table = card_info_soup.find('table', attrs={'class': 'innertable'})
+                card_id = [tr for tr in card_info_table.find_all('tr') if 'Password' in str(tr)][0].find('td').text.strip()
+            else:
+                card_id = 'None'
 
             # replaces <br /> with \n to get all unique rarities for each card.
             card_rarities = row[2]
