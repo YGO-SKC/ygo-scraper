@@ -19,7 +19,7 @@ def get_stat_from_product_info_table(stat, product_info_table):
 
 def get_product_info(soup, product_type, product_sub_type):
 
-    product_name = soup.find('h1', attrs={'id': 'firstHeading'}).text.strip()
+    product_name = soup.find('h1', attrs={'id': 'firstHeading'}).text.strip().replace('Structure Deck: ', "")
 
     product_info_table = soup.find('table', attrs={'class': 'infobox list-noicon'}).find_all('tr')
 
